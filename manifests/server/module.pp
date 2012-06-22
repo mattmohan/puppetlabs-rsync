@@ -48,7 +48,7 @@ define rsync::server::module (
   $auth_users      = undef,
   $hosts_allow     = undef,
   $hosts_deny      = undef,
-  $excludes        = undef)  {
+  $exclude         = undef)  {
 
   file { "${rsync::server::rsync_fragments}/frag-${name}":
     content => template('rsync/module.erb'),
