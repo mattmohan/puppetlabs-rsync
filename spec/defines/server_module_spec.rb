@@ -64,7 +64,11 @@ describe 'rsync::server::module', :type => :define do
       let :params do
         mandatory_params.merge({ k => v })
       end
-      it { should contain_file(fragment_file).with_content(/^#{k.to_s.gsub('_', ' ')}\s*=\s*#{v.to_a.join(' ')}$/)}
+      if v.respond_to?(:lines) then
+        it { should contain_file(fragment_file).with_content(/^#{k.to_s.gsub('_', ' ')}\s*=\s*#{v.lines.to_a.join(' ')}$/)}
+      else
+        it { should contain_file(fragment_file).with_content(/^#{k.to_s.gsub('_', ' ')}\s*=\s*#{v.to_a.join(' ')}$/)}
+      end
     end
   end
 
