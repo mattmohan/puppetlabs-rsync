@@ -15,17 +15,28 @@ class rsync::server(
 
   $rsync_fragments = '/etc/rsync.d'
 
+  case $::operatingsystem {
+    'Gentoo': { 
+      $service_name = 'rsyncd'
+      $rsync_conf   = '/etc/rsyncd.conf'
+    }
+    default: {
+      $service_name = 'rsync'
+      $rsync_conf   = '/etc/rsync.conf'
+    }
+  }
+
   if($use_xinetd) {
     include xinetd
     xinetd::service { 'rsync':
       bind        => $address,
       port        => '873',
       server      => '/usr/bin/rsync',
-      server_args => '--daemon --config /etc/rsync.conf',
+      server_args => "--daemon --config ${rsync_conf}",
       require     => Package['rsync'],
     }
   } else {
-    service { 'rsync':
+    service { $service_name:
       ensure    => running,
       enable    => true,
       subscribe => Exec['compile fragments'],
@@ -52,7 +63,7 @@ class rsync::server(
   # which happens with cobbler systems by default
   exec { 'compile fragments':
     refreshonly => true,
-    command     => "ls ${rsync_fragments}/frag-* 1>/dev/null 2>/dev/null && if [ $? -eq 0 ]; then cat ${rsync_fragments}/header ${rsync_fragments}/frag-* > /etc/rsync.conf; else cat ${rsync_fragments}/header > /etc/rsync.conf; fi; $(exit 0)",
+    command     => "ls ${rsync_fragments}/frag-* 1>/dev/null 2>/dev/null && if [ $? -eq 0 ]; then cat ${rsync_fragments}/header ${rsync_fragments}/frag-* > ${rsync_conf}; else cat ${rsync_fragments}/header > ${rsync_conf}; fi; $(exit 0)",
     subscribe   => File["${rsync_fragments}/header"],
     path        => '/bin:/usr/bin',
   }
